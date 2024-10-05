@@ -34,6 +34,7 @@ function AppViewModel() {
             self.positions({...self.positions(), [swappingTeam]: {left: positions.right, right: positions.left}});
         }
         self.scores(outcome);
+        sayIt(outcome, self);
     }
     
     this.positions = ko.observable({A: {left: 2, right: 1}, B: {left: 4, right: 3}})
@@ -58,7 +59,7 @@ function AppViewModel() {
         const t = self.teamPositions()
         return self.gameDetails.players[`player${p[t.right].right}`];
     })
-    this.scores = ko.observable({score: {A: 6, B: 6, servingTeam: 'A', server: 1}, winner: '', handout: false, gameBall: false});
+    this.scores = ko.observable({score: {A: 0, B: 0, servingTeam: 'A', server: 1}, winner: '', handout: false, gameBall: false});
     this.hasServer = ko.computed(function() {
         return self.scores().servingTeam !== '';
     })
@@ -200,5 +201,33 @@ function updateRallyScore(currentScore, scoringTeam, playTo, serveToWin) {
     };
 }
 
+function sayIt(outcome, self) {
+    // Example outcome {"score":{"A":6,"B":7,"servingTeam":"B","server":1},"handout":true,"gameBall":false,"winner":""}
+    let utterances = []
+    if (outcome.winner) {
+        utterances.push('Game');
+    } else {
+        if (outcome.handout) {
+            utterances.push('Handout');
+        }
+        const score = outcome.score
+        const serving = score.servingTeam
+        if(self.isTopLeftServer()) {
+            utterances.push(`${self.topLeftPlayer()} serving from the left`);
+        } else if(self.isBottomLeftServer()) {
+            utterances.push(`${self.bottomLeftPlayer()} serving from the right`);
+        } else if(self.isTopRightServer()) {
+            utterances.push(`${self.topRightPlayer()} serving from the right`);
+        } else if(self.isBottomRightServer()) {
+            utterances.push(`${self.bottomRightPlayer()} serving from the left`);
+        }
+        if (outcome.gameBall) {
+            utterances.push('Game ball');
+        }
+    }
+    console.log(utterances)
+    const utterance = new SpeechSynthesisUtterance(utterances.join(', '));
+    window.speechSynthesis.speak(utterance);
+}
 
 ko.applyBindings(new AppViewModel());
