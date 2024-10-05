@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, orientation=landscape">
+    <title>Pickleball Game</title>
+    <script defer src="knockout.debug.js"></script>
+    <script defer src="pickleball.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center min-h-screen h-screen overflow-auto relative">
+    <div class="fixed inset-0 bg-white bg-opacity-90 flex justify-center items-center z-50" data-bind="visible: hasWinner">
+        <div class="bg-white p-8 rounded shadow-lg text-center">
+            <h1 class="text-4xl font-bold text-green-500">WINNER</h1>
+            <p class="text-2xl mt-4" data-bind="text: winnerName"></p>
+            <button class="mt-6 px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
+                onclick="window.location.href='index.html'">
+            New Game
+        </button>
+        </div>
+    </div>
+    <div class="absolute right-0">
+        <!-- Floating Details Button -->
+        <button id="details-button" class="absolute top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded shadow" data-bind="click: toggleDetails">
+            Details
+        </button>
+    
+        <!-- Expandable Details Section -->
+        <div id="details-section" data-bind="visible: detailsShown" class="absolute top-16 right-4 bg-white shadow-lg rounded w-[200px] p-4 transition-all duration-300">
+            <table class="min-w-full">
+                <tbody>
+                    <tr>
+                        <td class="font-bold">Play To:</td>
+                        <td data-bind="text: gameDetails.playTo"></td>
+                    </tr>
+                    <tr>
+                        <td class="font-bold">Scoring System:</td>
+                        <td data-bind="text: gameDetails.scoringSystem"></td>
+                    </tr>
+                    <tr>
+                        <td class="font-bold">Serve to Win:</td>
+                        <td data-bind="text: gameDetails.serveToWin ? 'Yes' : 'No'"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="flex items-center justify-center w-full p-4 h-[20vh]">
+        <div data-bind="visible: isLeftTeamServing,click: function() {setServer('left')}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50">
+                <!-- Yellow background circle -->
+                <circle cx="50" cy="50" r="45" fill="#FFEB3B" stroke="#FBC02D" stroke-width="5" />
+              
+                <!-- Holes in the pickleball -->
+                <circle cx="35" cy="30" r="5" fill="#FFFFFF" />
+                <circle cx="65" cy="30" r="5" fill="#FFFFFF" />
+                <circle cx="50" cy="50" r="5" fill="#FFFFFF" />
+                <circle cx="35" cy="70" r="5" fill="#FFFFFF" />
+                <circle cx="65" cy="70" r="5" fill="#FFFFFF" />
+                <circle cx="50" cy="30" r="3" fill="#FFFFFF" />
+                <circle cx="70" cy="50" r="3" fill="#FFFFFF" />
+                <circle cx="30" cy="50" r="3" fill="#FFFFFF" />
+                <circle cx="50" cy="70" r="3" fill="#FFFFFF" />
+              </svg>
+        </div>              
+        <div class="flex items-center justify-end space-x-2 flex-grow-0 flex-shrink-0 px-2 text-lg font-bold" data-bind="text: leftTeamName, click: function() {setServer('left')}">
+        </div>
+    
+        <!-- Center Score Section -->
+        <div class="flex items-center space-x-2">
+            <!-- Score 0 -->
+            <span class="text-4xl font-bold whitespace-nowrap" data-bind="text: leftScore"></span>
+    
+            <!-- Swap Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 cursor-pointer text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-bind="click: swapTeamSide">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18m-6 4l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+    
+            <!-- Score 0 -->
+            <span class="text-4xl font-bold whitespace-nowrap"  data-bind="text: rightScore"></span>
+        </div>
+    
+        <!-- Player 3 and Player 4 -->
+        <div class="flex items-center text-lg font-bold justify-start space-x-2 flex-grow-0 flex-shrink-0 px-2" data-bind="text: rightTeamName, click: function() {setServer('right')}">
+        </div>
+        <div data-bind="visible: isRightTeamServing, click: function() {setServer('right')}">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50">
+                <!-- Yellow background circle -->
+                <circle cx="50" cy="50" r="45" fill="#FFEB3B" stroke="#FBC02D" stroke-width="5" />
+              
+                <!-- Holes in the pickleball -->
+                <circle cx="35" cy="30" r="5" fill="#FFFFFF" />
+                <circle cx="65" cy="30" r="5" fill="#FFFFFF" />
+                <circle cx="50" cy="50" r="5" fill="#FFFFFF" />
+                <circle cx="35" cy="70" r="5" fill="#FFFFFF" />
+                <circle cx="65" cy="70" r="5" fill="#FFFFFF" />
+                <circle cx="50" cy="30" r="3" fill="#FFFFFF" />
+                <circle cx="70" cy="50" r="3" fill="#FFFFFF" />
+                <circle cx="30" cy="50" r="3" fill="#FFFFFF" />
+                <circle cx="50" cy="70" r="3" fill="#FFFFFF" />
+              </svg>
+        </div> 
+    </div>
+    <div class="h-[80vh] relative w-full">
+        <div class="w-full h-full p-4 grid grid-cols-[3fr_5fr_repeat(2,_2fr)_5fr_3fr] grid-rows-[repeat(2,_1fr)] gap-0">
+            <div class="text-xl flex items-center justify-end pr-2" data-bind="text: topLeftPlayer">Player 1</div>
+            <div class="border-0 border-l-4 border-t-4 border-b border-r-2 border-solid border-black bg-purple-400 flex items-center justify-center" data-bind="click: function() {scoreClick('left', 'left')}">
+                <div data-bind="visible: isTopLeftServer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50">
+                        <!-- Yellow background circle -->
+                        <circle cx="50" cy="50" r="45" fill="#FFEB3B" stroke="#FBC02D" stroke-width="5" />
+                      
+                        <!-- Holes in the pickleball -->
+                        <circle cx="35" cy="30" r="5" fill="#FFFFFF" />
+                        <circle cx="65" cy="30" r="5" fill="#FFFFFF" />
+                        <circle cx="50" cy="50" r="5" fill="#FFFFFF" />
+                        <circle cx="35" cy="70" r="5" fill="#FFFFFF" />
+                        <circle cx="65" cy="70" r="5" fill="#FFFFFF" />
+                        <circle cx="50" cy="30" r="3" fill="#FFFFFF" />
+                        <circle cx="70" cy="50" r="3" fill="#FFFFFF" />
+                        <circle cx="30" cy="50" r="3" fill="#FFFFFF" />
+                        <circle cx="50" cy="70" r="3" fill="#FFFFFF" />
+                      </svg>
+                </div> 
+            </div>
+            <div class="col-start-3 col-end-4 row-start-1 row-end-3 flex items-center justify-center text-6xl border-r-4 border-solid border-black border-t-4 border-b-4" data-bind="text: leftScore"></div>
+            <div class="col-start-4 col-end-5 row-start-1 row-end-3 flex items-center justify-center text-6xl border-l-4 border-solid border-black border-t-4 border-b-4" data-bind="text: rightScore"></div>
+            <div class="border-0 border-r-4 border-t-4 border-b border-l-2 border-solid border-black bg-purple-600 flex items-center justify-center" data-bind="click: function() {scoreClick('right', 'right')}">
+                <div data-bind="visible: isTopRightServer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50">
+                        <!-- Yellow background circle -->
+                        <circle cx="50" cy="50" r="45" fill="#FFEB3B" stroke="#FBC02D" stroke-width="5" />
+                      
+                        <!-- Holes in the pickleball -->
+                        <circle cx="35" cy="30" r="5" fill="#FFFFFF" />
+                        <circle cx="65" cy="30" r="5" fill="#FFFFFF" />
+                        <circle cx="50" cy="50" r="5" fill="#FFFFFF" />
+                        <circle cx="35" cy="70" r="5" fill="#FFFFFF" />
+                        <circle cx="65" cy="70" r="5" fill="#FFFFFF" />
+                        <circle cx="50" cy="30" r="3" fill="#FFFFFF" />
+                        <circle cx="70" cy="50" r="3" fill="#FFFFFF" />
+                        <circle cx="30" cy="50" r="3" fill="#FFFFFF" />
+                        <circle cx="50" cy="70" r="3" fill="#FFFFFF" />
+                      </svg>
+                </div> 
+            </div>
+            <div class="text-xl flex items-center justify-start pl-2" data-bind="text: topRightPlayer"></div>
+            <div class="text-xl flex items-center justify-end pr-2"  data-bind="text: bottomLeftPlayer">Player 2</div>
+            <div class="border-0 border-l-4 border-b-4 border-t border-r-2 border-solid border-black bg-purple-400 flex items-center justify-center" data-bind="click: function() {scoreClick('left', 'right')}">
+                <div data-bind="visible: isBottomLeftServer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50">
+                        <!-- Yellow background circle -->
+                        <circle cx="50" cy="50" r="45" fill="#FFEB3B" stroke="#FBC02D" stroke-width="5" />
+                      
+                        <!-- Holes in the pickleball -->
+                        <circle cx="35" cy="30" r="5" fill="#FFFFFF" />
+                        <circle cx="65" cy="30" r="5" fill="#FFFFFF" />
+                        <circle cx="50" cy="50" r="5" fill="#FFFFFF" />
+                        <circle cx="35" cy="70" r="5" fill="#FFFFFF" />
+                        <circle cx="65" cy="70" r="5" fill="#FFFFFF" />
+                        <circle cx="50" cy="30" r="3" fill="#FFFFFF" />
+                        <circle cx="70" cy="50" r="3" fill="#FFFFFF" />
+                        <circle cx="30" cy="50" r="3" fill="#FFFFFF" />
+                        <circle cx="50" cy="70" r="3" fill="#FFFFFF" />
+                      </svg>
+                </div> 
+            </div>
+            <div class="border-0 border-r-4 border-b-4 border-t border-l-2 border-solid border-black bg-purple-600 flex items-center justify-center" data-bind="click: function() {scoreClick('right', 'left')}">
+                <div data-bind="visible: isBottomRightServer">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="50" height="50">
+                        <!-- Yellow background circle -->
+                        <circle cx="50" cy="50" r="45" fill="#FFEB3B" stroke="#FBC02D" stroke-width="5" />
+                      
+                        <!-- Holes in the pickleball -->
+                        <circle cx="35" cy="30" r="5" fill="#FFFFFF" />
+                        <circle cx="65" cy="30" r="5" fill="#FFFFFF" />
+                        <circle cx="50" cy="50" r="5" fill="#FFFFFF" />
+                        <circle cx="35" cy="70" r="5" fill="#FFFFFF" />
+                        <circle cx="65" cy="70" r="5" fill="#FFFFFF" />
+                        <circle cx="50" cy="30" r="3" fill="#FFFFFF" />
+                        <circle cx="70" cy="50" r="3" fill="#FFFFFF" />
+                        <circle cx="30" cy="50" r="3" fill="#FFFFFF" />
+                        <circle cx="50" cy="70" r="3" fill="#FFFFFF" />
+                      </svg>
+                </div> 
+            </div>
+            <div class="text-xl flex items-center justify-start pl-2" data-bind="text: bottomRightPlayer">Player 4</div>
+        </div>
+    </div>
+
+</body>
+</html>
